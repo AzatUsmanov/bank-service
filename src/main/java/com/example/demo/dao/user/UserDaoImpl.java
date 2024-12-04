@@ -1,7 +1,9 @@
 package com.example.demo.dao.user;
 
 import com.example.demo.domain.model.User;
+
 import lombok.AllArgsConstructor;
+
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;

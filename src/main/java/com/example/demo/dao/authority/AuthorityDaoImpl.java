@@ -1,10 +1,13 @@
 package com.example.demo.dao.authority;
 
-import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.model.Authority;
+
 import lombok.AllArgsConstructor;
+
 import org.springframework.stereotype.Repository;
+
 import com.example.demo.domain.model.User;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

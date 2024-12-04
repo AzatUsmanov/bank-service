@@ -21,6 +21,9 @@
 14) Проведению операций пополнения, списывания и переводов с разными обменными курсами валют, полученными из актуальных данных ЦБ РФ
 
 Стек технологий:
-Язык:Java 21
+
+Язык: Java 21
+
 Фреймворки: Spring Core, Spring Boot, Spring Security, Spring MVC, Spring JDBC, Junit 5, Mockito
+
 Инструменты: Flyway Migration, Hibernate validation, OpenFeign, PostgreSQL

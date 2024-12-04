@@ -1,20 +1,16 @@
 package com.example.demo.integration.controller;
 
 import com.example.demo.domain.dto.Account;
-import com.example.demo.domain.dto.operation.ReplenishmentOperation;
 import com.example.demo.domain.dto.operation.WithdrawalOperation;
-import com.example.demo.domain.model.Currency;
 import com.example.demo.domain.model.User;
-import com.example.demo.service.account.AccountService;
 import com.example.demo.service.account.AccountServiceImpl;
 import com.example.demo.service.currency.CurrencyServiceImpl;
-import com.example.demo.service.operation.OperationService;
 import com.example.demo.tool.AccountTestDataCreator;
-import com.example.demo.tool.ReplenishmentOperationTestDataCreator;
 import com.example.demo.tool.UserTestDataCreator;
 import com.example.demo.tool.WithdrawalOperationTestDataCreator;
+
 import jakarta.servlet.ServletException;
-import org.junit.jupiter.api.AfterEach;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 

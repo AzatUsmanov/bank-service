@@ -2,7 +2,9 @@ package com.example.demo.service.authority;
 
 import com.example.demo.dao.authority.AuthorityDao;
 import com.example.demo.domain.model.Authority;
+
 import lombok.AllArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;

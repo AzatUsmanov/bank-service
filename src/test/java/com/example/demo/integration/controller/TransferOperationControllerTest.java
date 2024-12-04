@@ -3,7 +3,6 @@ package com.example.demo.integration.controller;
 
 import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.dto.operation.TransferOperation;
-import com.example.demo.domain.dto.operation.WithdrawalOperation;
 import com.example.demo.domain.model.Currency;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountServiceImpl;
@@ -11,9 +10,12 @@ import com.example.demo.service.currency.CurrencyServiceImpl;
 import com.example.demo.tool.AccountTestDataCreator;
 import com.example.demo.tool.TransferOperationTestDataCreator;
 import com.example.demo.tool.UserTestDataCreator;
+
 import jakarta.servlet.ServletException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;

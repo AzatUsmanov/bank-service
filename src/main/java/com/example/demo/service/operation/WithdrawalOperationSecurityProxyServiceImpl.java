@@ -1,23 +1,17 @@
 package com.example.demo.service.operation;
 
-import com.example.demo.dao.operation.OperationDao;
 import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.dto.operation.ReplenishmentOperation;
 import com.example.demo.domain.dto.operation.WithdrawalOperation;
-import com.example.demo.domain.model.Currency;
-import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountService;
 import com.example.demo.service.authentication.CurrentUserService;
-import com.example.demo.service.currency.CurrencyService;
-import com.example.demo.service.user.UserService;
 import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -50,7 +44,7 @@ public class WithdrawalOperationSecurityProxyServiceImpl implements OperationSer
     @Override
     @Transactional
     public void process(WithdrawalOperation operation) throws NotEnoughFundsInAccount {
-        if (!currentUserService.userHasAuthorityToEdit(operation.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToEdit(operation.getUserId())) {
             throw new AccessDeniedException("Attempt to process an operation for another user");
         }
         withdrawalOperationOperationService.process(operation);
@@ -65,7 +59,7 @@ public class WithdrawalOperationSecurityProxyServiceImpl implements OperationSer
     @Override
     public WithdrawalOperation getById(Integer id) {
         WithdrawalOperation withdrawalOperation = withdrawalOperationOperationService.getById(id);
-        if (!currentUserService.userHasAuthorityToView(withdrawalOperation.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(withdrawalOperation.getUserId())) {
             throw new AccessDeniedException("Attempt to get an operation by id for another user");
         }
         return withdrawalOperation;
@@ -82,7 +76,7 @@ public class WithdrawalOperationSecurityProxyServiceImpl implements OperationSer
     @Override
     public List<WithdrawalOperation> getByAccountId(Integer accountId) {
         Account account = accountService.getById(accountId);
-        if (!currentUserService.userHasAuthorityToView(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an operations by account id for another user");
         }
         return withdrawalOperationOperationService.getByAccountId(accountId);
@@ -97,7 +91,7 @@ public class WithdrawalOperationSecurityProxyServiceImpl implements OperationSer
      */
     @Override
     public List<WithdrawalOperation> getByUserId(Integer userId) {
-        if (!currentUserService.userHasAuthorityToView(userId)) {
+        if (currentUserService.userHasNoAuthorityToView(userId)) {
             throw new AccessDeniedException("Attempt to get an operations by user id for another user");
         }
         return withdrawalOperationOperationService.getByUserId(userId);

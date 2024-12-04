@@ -1,15 +1,8 @@
 package com.example.demo.integration.controller;
 
-import com.example.demo.domain.dto.authentication.JwtAuthenticationResponse;
-import com.example.demo.domain.dto.authentication.SignInRequest;
-import com.example.demo.domain.dto.authentication.SignUpRequest;
 import com.example.demo.domain.model.User;
-import com.example.demo.service.authentication.AuthenticationService;
 import com.example.demo.tool.UserTestDataCreator;
-import com.example.demo.tool.exception.NotUniqueEmailException;
-import com.example.demo.tool.exception.NotUniqueUsernameException;
-import jakarta.validation.Valid;
-import org.junit.jupiter.api.AfterEach;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;

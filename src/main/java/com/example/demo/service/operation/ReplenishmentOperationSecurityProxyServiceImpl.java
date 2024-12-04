@@ -1,22 +1,17 @@
 package com.example.demo.service.operation;
 
-import com.example.demo.dao.operation.OperationDao;
 import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.dto.operation.ReplenishmentOperation;
-import com.example.demo.domain.model.Currency;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountService;
 import com.example.demo.service.authentication.CurrentUserService;
-import com.example.demo.service.currency.CurrencyService;
-import com.example.demo.service.user.UserService;
 import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -48,7 +43,7 @@ public class ReplenishmentOperationSecurityProxyServiceImpl implements Operation
     @Override
     @Transactional
     public void process(ReplenishmentOperation operation) throws NotEnoughFundsInAccount {
-        if (!currentUserService.userHasAuthorityToEdit(operation.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToEdit(operation.getUserId())) {
             throw new AccessDeniedException("Attempt to process an operation for another user");
         }
         replenishmentOperationOperationService.process(operation);
@@ -64,7 +59,7 @@ public class ReplenishmentOperationSecurityProxyServiceImpl implements Operation
     @Override
     public ReplenishmentOperation getById(Integer id) {
         ReplenishmentOperation replenishmentOperation = replenishmentOperationOperationService.getById(id);
-        if (!currentUserService.userHasAuthorityToView(replenishmentOperation.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(replenishmentOperation.getUserId())) {
             throw new AccessDeniedException("Attempt to get an operation by id for another user");
         }
         return replenishmentOperation;
@@ -80,7 +75,7 @@ public class ReplenishmentOperationSecurityProxyServiceImpl implements Operation
     @Override
     public List<ReplenishmentOperation> getByAccountId(Integer accountId) {
         Account account = accountService.getById(accountId);
-        if (!currentUserService.userHasAuthorityToView(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an operations by account id for another user");
         }
         return replenishmentOperationOperationService.getByAccountId(accountId);
@@ -95,7 +90,7 @@ public class ReplenishmentOperationSecurityProxyServiceImpl implements Operation
      */
     @Override
     public List<ReplenishmentOperation> getByUserId(Integer userId) {
-        if (!currentUserService.userHasAuthorityToView(userId)) {
+        if (currentUserService.userHasNoAuthorityToView(userId)) {
             throw new AccessDeniedException("Attempt to get an operations by user id for another user");
         }
         return replenishmentOperationOperationService.getByUserId(userId);

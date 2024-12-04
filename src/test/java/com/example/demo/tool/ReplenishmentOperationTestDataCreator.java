@@ -1,12 +1,8 @@
 package com.example.demo.tool;
 
-import com.example.demo.controller.AuthenticationController;
-import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.dto.operation.ReplenishmentOperation;
 import com.example.demo.domain.model.Currency;
-import com.example.demo.service.authority.AuthorityService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;

@@ -2,6 +2,7 @@ package com.example.demo.service.authentication;
 
 import com.example.demo.domain.model.Authority;
 import com.example.demo.domain.model.User;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +21,8 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * @return true, если текущему пользователю можно редактировать и false, если нет
      */
     @Override
-    public boolean userHasAuthorityToEdit(Integer userId) {
-        return equalToCurrentUserId(userId) || currentUserHasAuthority(Authority.ADMIN_EDIT);
+    public boolean userHasNoAuthorityToEdit(Integer userId) {
+        return notEqualToCurrentUserId(userId) && !currentUserHasAuthority(Authority.ADMIN_EDIT);
     }
 
     /**
@@ -31,8 +32,8 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * @return true, если текущему пользователю можно читать и false, если нет
      */
     @Override
-    public boolean userHasAuthorityToView(Integer userId) {
-        return equalToCurrentUserId(userId) || currentUserHasAuthority(Authority.ADMIN_VIEW);
+    public boolean userHasNoAuthorityToView(Integer userId) {
+        return notEqualToCurrentUserId(userId) && !currentUserHasAuthority(Authority.ADMIN_VIEW);
     }
 
     /**
@@ -52,8 +53,8 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * @return true, ли равны и false, если нет
      */
     @Override
-    public boolean equalToCurrentUserId(Integer id) {
-        return Objects.equals(getCurrentUserId(), id);
+    public boolean notEqualToCurrentUserId(Integer id) {
+        return !Objects.equals(getCurrentUserId(), id);
     }
 
     /**

@@ -1,16 +1,16 @@
 package com.example.demo.service.user;
 
 import com.example.demo.dao.user.UserDao;
-import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.model.Authority;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.authority.AuthorityService;
 import com.example.demo.tool.exception.NotUniqueEmailException;
 import com.example.demo.tool.exception.NotUniqueUsernameException;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;

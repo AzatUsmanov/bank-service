@@ -3,10 +3,10 @@ package com.example.demo.service.account;
 import com.example.demo.dao.account.AccountDao;
 import com.example.demo.domain.dto.Account;
 import com.example.demo.service.user.UserService;
-import lombok.AllArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;

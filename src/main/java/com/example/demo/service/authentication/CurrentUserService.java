@@ -10,13 +10,13 @@ public interface CurrentUserService {
 
     Integer getCurrentUserId();
 
-    boolean userHasAuthorityToEdit(Integer userId);
+    boolean userHasNoAuthorityToEdit(Integer userId);
 
-    boolean userHasAuthorityToView(Integer userId);
+    boolean userHasNoAuthorityToView(Integer userId);
 
     boolean userHasAuthorityToView(String username);
 
-    boolean equalToCurrentUserId(Integer id);
+    boolean notEqualToCurrentUserId(Integer id);
 
     boolean equalToCurrentUsername(String username);
 

@@ -1,10 +1,10 @@
 package com.example.demo.service.user;
 
-import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.authentication.CurrentUserService;
 import com.example.demo.tool.exception.NotUniqueEmailException;
 import com.example.demo.tool.exception.NotUniqueUsernameException;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class UserSecurityProxyServiceImpl implements UserService {
      */
     @Override
     public User getById(Integer id) {
-        if (!currentUserService.userHasAuthorityToView(id)) {
+        if (currentUserService.userHasNoAuthorityToView(id)) {
             throw new AccessDeniedException("Attempt to get an account for another user by id");
         }
         return userService.getById(id);
@@ -72,7 +72,7 @@ public class UserSecurityProxyServiceImpl implements UserService {
      */
     @Override
     public boolean isPresentById(Integer id) {
-        if (!currentUserService.userHasAuthorityToView(id)) {
+        if (currentUserService.userHasNoAuthorityToView(id)) {
             throw new AccessDeniedException("Trying to check the existence of another user");
         }
         return userService.isPresentById(id);

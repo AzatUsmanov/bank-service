@@ -3,11 +3,13 @@ package com.example.demo.controller;
 import com.example.demo.domain.dto.operation.TransferOperation;
 import com.example.demo.service.operation.OperationService;
 import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

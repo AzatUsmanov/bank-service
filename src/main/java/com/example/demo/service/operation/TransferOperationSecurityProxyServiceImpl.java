@@ -1,22 +1,16 @@
 package com.example.demo.service.operation;
 
-import com.example.demo.dao.operation.OperationDao;
 import com.example.demo.domain.dto.Account;
-import com.example.demo.domain.dto.operation.ReplenishmentOperation;
 import com.example.demo.domain.dto.operation.TransferOperation;
-import com.example.demo.domain.model.Currency;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountService;
 import com.example.demo.service.authentication.CurrentUserService;
-import com.example.demo.service.currency.CurrencyService;
-import com.example.demo.service.user.UserService;
 import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -47,7 +41,7 @@ public class TransferOperationSecurityProxyServiceImpl implements OperationServi
      */
     @Override
     public void process(TransferOperation operation) throws NotEnoughFundsInAccount {
-        if (!currentUserService.userHasAuthorityToEdit(operation.getFromUserId())) {
+        if (currentUserService.userHasNoAuthorityToEdit(operation.getFromUserId())) {
             throw new AccessDeniedException("Attempt to process an operation for another user");
         }
         transferOperationOperationService.process(operation);
@@ -62,8 +56,8 @@ public class TransferOperationSecurityProxyServiceImpl implements OperationServi
     @Override
     public TransferOperation getById(Integer id) {
         TransferOperation operation = transferOperationOperationService.getById(id);
-        if (!currentUserService.userHasAuthorityToView(operation.getFromUserId())
-        && !currentUserService.userHasAuthorityToView(operation.getToUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(operation.getFromUserId())
+        && currentUserService.userHasNoAuthorityToView(operation.getToUserId())) {
             throw new AccessDeniedException("Attempt to get an operation by id for another user");
         }
         return operation;
@@ -78,7 +72,7 @@ public class TransferOperationSecurityProxyServiceImpl implements OperationServi
     @Override
     public List<TransferOperation> getByAccountId(Integer accountId) {
         Account account = accountService.getById(accountId);
-        if (!currentUserService.userHasAuthorityToView(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an operations by account id for another user");
         }
         return transferOperationOperationService.getByAccountId(accountId);
@@ -93,7 +87,7 @@ public class TransferOperationSecurityProxyServiceImpl implements OperationServi
      */
     @Override
     public List<TransferOperation> getByUserId(Integer userId) {
-        if (!currentUserService.userHasAuthorityToView(userId)) {
+        if (currentUserService.userHasNoAuthorityToView(userId)) {
             throw new AccessDeniedException("Attempt to get an operations by user id for another user");
         }
         return transferOperationOperationService.getByUserId(userId);

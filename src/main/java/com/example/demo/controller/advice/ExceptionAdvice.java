@@ -3,7 +3,9 @@ package com.example.demo.controller.advice;
 import com.example.demo.tool.exception.NotEnoughFundsInAccount;
 import com.example.demo.tool.exception.NotUniqueEmailException;
 import com.example.demo.tool.exception.NotUniqueUsernameException;
+
 import feign.RetryableException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

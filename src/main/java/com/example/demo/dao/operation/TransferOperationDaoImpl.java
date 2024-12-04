@@ -1,12 +1,12 @@
 package com.example.demo.dao.operation;
 
 import com.example.demo.domain.dto.Account;
-import com.example.demo.domain.dto.operation.ReplenishmentOperation;
-import com.example.demo.domain.dto.operation.WithdrawalOperation;
 import com.example.demo.domain.model.Currency;
 import com.example.demo.domain.dto.operation.TransferOperation;
 import com.example.demo.domain.model.User;
+
 import lombok.AllArgsConstructor;
+
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -16,11 +16,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Класс, реализующий функционал по работе с данными об операциях переводах {@link TransferOperation}

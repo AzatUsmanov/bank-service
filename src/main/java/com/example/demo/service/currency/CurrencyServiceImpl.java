@@ -2,8 +2,11 @@ package com.example.demo.service.currency;
 
 import com.example.demo.client.CentralBankClient;
 import com.example.demo.domain.model.Currency;
+
 import lombok.AllArgsConstructor;
+
 import org.json.JSONObject;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

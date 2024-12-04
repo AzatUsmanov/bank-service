@@ -2,10 +2,9 @@ package com.example.demo.service.account;
 
 import com.example.demo.domain.dto.Account;
 import com.example.demo.service.authentication.CurrentUserService;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,7 +32,7 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
      */
     @Override
     public void create(Account account) {
-        if (!currentUserService.userHasAuthorityToEdit(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToEdit(account.getUserId())) {
             throw new AccessDeniedException("Attempt to create an account for another user");
         }
         accountService.create(account);
@@ -47,7 +46,7 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
      */
     @Override
     public void updateById(Integer id, Account account) {
-        if (!currentUserService.userHasAuthorityToEdit(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToEdit(account.getUserId())) {
             throw new AccessDeniedException("Attempt to update an account for another user");
         }
         accountService.updateById(id, account);
@@ -61,7 +60,7 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
     @Override
     public void deleteById(Integer id) {
         Account account = accountService.getById(id);
-        if (!currentUserService.userHasAuthorityToEdit(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToEdit(account.getUserId())) {
             throw new AccessDeniedException("Attempt to delete an account for another user");
         }
         accountService.deleteById(id);
@@ -76,7 +75,7 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
     @Override
     public Account getById(Integer id) {
         Account account = accountService.getById(id);
-        if (!currentUserService.userHasAuthorityToView(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an account for another user");
         }
         return account;
@@ -90,7 +89,7 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
      */
     @Override
     public List<Account> getByUserId(Integer userId) {
-        if (!currentUserService.userHasAuthorityToView(userId)) {
+        if (currentUserService.userHasNoAuthorityToView(userId)) {
             throw new AccessDeniedException("Attempt to get an account for another user");
         }
         return accountService.getByUserId(userId);
@@ -105,7 +104,7 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
     @Override
     public boolean isPresentById(Integer id) {
         Account account = accountService.getById(id);
-        if (!currentUserService.userHasAuthorityToView(account.getUserId())) {
+        if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an account for another user");
         }
         return accountService.isPresentById(id);
