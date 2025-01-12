@@ -8,14 +8,14 @@ import java.util.Optional;
 
 public interface AccountDao {
 
-    void save(Account account) throws SQLException;
+    void save(Account account);
 
-    void deleteById(Integer id) throws SQLException;
+    void deleteById(Integer id);
 
-    void updateById(Integer id, Account account) throws SQLException;
+    void updateById(Integer id, Account account);
 
-    Optional<Account> getById(Integer id) throws SQLException;
+    Optional<Account> getById(Integer id);
 
-    List<Account> getByUserId(Integer userId) throws SQLException;
+    List<Account> getByUserId(Integer userId);
 
 }

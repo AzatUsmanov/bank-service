@@ -8,7 +8,7 @@ import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountService;
 import com.example.demo.service.currency.CurrencyService;
 import com.example.demo.service.user.UserService;
-import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+import com.example.demo.tool.exception.NotEnoughFundsInAccountException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -53,20 +53,17 @@ public class WithdrawalOperationServiceImpl implements OperationService<Withdraw
      */
     @Override
     @Transactional
-    public void process(WithdrawalOperation operation) throws NotEnoughFundsInAccount {
-        try {
-            Account account = accountService.getById(operation.getAccountId());
-            BigDecimal withdrawalFunds = countWithdrawalFunds(operation.getCurrency(), account.getCurrency(), operation.getFunds());
+    public void process(WithdrawalOperation operation) throws NotEnoughFundsInAccountException {
+        Account account = accountService.getById(operation.getAccountId());
+        BigDecimal withdrawalFunds = countWithdrawalFunds(operation.getCurrency(), account.getCurrency(), operation.getFunds());
 
-            withdrawFundsFromAccount(account, withdrawalFunds);
+        operation.setDateOfCreation(new Date());
+        withdrawFundsFromAccount(account, withdrawalFunds);
 
-            accountService.updateById(operation.getAccountId(), account);
-            withdrawalOperationDao.save(operation);
+        accountService.updateById(operation.getAccountId(), account);
+        withdrawalOperationDao.save(operation);
 
-            log.info("Saved withdrawal operation {}", operation);
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while processing the withdrawal operation", e);
-        }
+        log.info("Saved withdrawal operation {}", operation);
     }
 
     /**
@@ -76,12 +73,8 @@ public class WithdrawalOperationServiceImpl implements OperationService<Withdraw
      */
     @Override
     public WithdrawalOperation getById(Integer id) {
-        try {
-            return withdrawalOperationDao.getById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Attempt to get withdrawal operation by non-existent id"));
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while receiving a withdrawal operation by id", e);
-        }
+        return withdrawalOperationDao.getById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Attempt to get withdrawal operation by non-existent id"));
     }
 
     /**
@@ -92,15 +85,9 @@ public class WithdrawalOperationServiceImpl implements OperationService<Withdraw
      */
     @Override
     public List<WithdrawalOperation> getByAccountId(Integer accountId) {
-        try {
-            if (accountService.isPresentById(accountId)) {
-                return withdrawalOperationDao.getAllByAccountId(accountId);
-            } else {
-                throw new IllegalArgumentException("Attempt to get list of withdrawal operations by non-existent account id");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting the list of withdrawal operations by account id", e);
-        }
+        if (!accountService.isPresentById(accountId)) {
+            throw new IllegalArgumentException("Attempt to get list of withdrawal operations by non-existent account id");
+        } else return withdrawalOperationDao.getAllByAccountId(accountId);
     }
 
     /**
@@ -111,26 +98,20 @@ public class WithdrawalOperationServiceImpl implements OperationService<Withdraw
      */
     @Override
     public List<WithdrawalOperation> getByUserId(Integer userId) {
-        try {
-            if (userService.isPresentById(userId)) {
-                return withdrawalOperationDao.getAllByUserId(userId);
-            } else {
-                throw new IllegalArgumentException("Attempt to get list of withdrawal operations by non-existent user id");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting the list of withdrawal operations by user id", e);
-        }
+        if (!userService.isPresentById(userId)) {
+            throw  new IllegalArgumentException("Attempt to get list of withdrawal operations by non-existent user id");
+        } else return withdrawalOperationDao.getAllByUserId(userId);
     }
 
     /**
      * Метод, выполняющий снятия средств со счета {@link Account}
      * @param account {@link Account} - счет, с которого нужно снять средства
      * @param funds - количество средств, которые нужно снять со счета
-     * @throws NotEnoughFundsInAccount - исключение, возникающее при попытке списать средства с пустого счета
+     * @throws NotEnoughFundsInAccountException - исключение, возникающее при попытке списать средства с пустого счета
      */
-    private void withdrawFundsFromAccount(Account account, BigDecimal funds) throws NotEnoughFundsInAccount {
+    private void withdrawFundsFromAccount(Account account, BigDecimal funds) throws NotEnoughFundsInAccountException {
         if (account.getFunds().compareTo(funds) < MINIMUM_AMOUNT_OF_FUNDS_IN_ACCOUNT) {
-            throw new NotEnoughFundsInAccount("Attempt to withdrawal off funds from an empty account");
+            throw new NotEnoughFundsInAccountException("Attempt to withdrawal off funds from an empty account");
         }
         BigDecimal newAmountOfFunds = account.getFunds().add(funds.negate());
         account.setFunds(newAmountOfFunds);

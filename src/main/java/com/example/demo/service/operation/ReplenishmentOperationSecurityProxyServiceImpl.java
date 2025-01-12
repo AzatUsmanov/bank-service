@@ -5,8 +5,10 @@ import com.example.demo.domain.dto.operation.ReplenishmentOperation;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountService;
 import com.example.demo.service.authentication.CurrentUserService;
-import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+import com.example.demo.tool.exception.NotEnoughFundsInAccountException;
 
+import com.example.demo.tool.exception.TransferToNonExistentAccountException;
+import com.example.demo.tool.exception.TransferToSameAccountException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -42,7 +44,7 @@ public class ReplenishmentOperationSecurityProxyServiceImpl implements Operation
      */
     @Override
     @Transactional
-    public void process(ReplenishmentOperation operation) throws NotEnoughFundsInAccount {
+    public void process(ReplenishmentOperation operation) throws NotEnoughFundsInAccountException, TransferToNonExistentAccountException, TransferToSameAccountException {
         if (currentUserService.userHasNoAuthorityToEdit(operation.getUserId())) {
             throw new AccessDeniedException("Attempt to process an operation for another user");
         }
@@ -74,6 +76,9 @@ public class ReplenishmentOperationSecurityProxyServiceImpl implements Operation
      */
     @Override
     public List<ReplenishmentOperation> getByAccountId(Integer accountId) {
+        if (!accountService.isPresentById(accountId)) {
+            throw new AccessDeniedException("Attempt to get list of replenishment operations by non-existent account id");
+        }
         Account account = accountService.getById(accountId);
         if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an operations by account id for another user");

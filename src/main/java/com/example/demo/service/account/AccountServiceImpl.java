@@ -2,14 +2,15 @@ package com.example.demo.service.account;
 
 import com.example.demo.dao.account.AccountDao;
 import com.example.demo.domain.dto.Account;
-import com.example.demo.service.user.UserService;
+import com.example.demo.service.authentication.CurrentUserService;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,12 +22,12 @@ public class AccountServiceImpl implements AccountService {
 
     private final AccountDao accountDao;
 
-    private final UserService userService;
 
-    public AccountServiceImpl(AccountDao accountDao,
-                              @Qualifier("UserServiceImpl") UserService userService) {
+    private final CurrentUserService currentUserService;
+
+    public AccountServiceImpl(AccountDao accountDao, CurrentUserService currentUserService) {
         this.accountDao = accountDao;
-        this.userService = userService;
+        this.currentUserService = currentUserService;
     }
 
     /**
@@ -34,13 +35,12 @@ public class AccountServiceImpl implements AccountService {
      * @param account - {@link Account} счет для сохранения
      */
     @Override
-    public void create(Account account) {
-        try {
-            accountDao.save(account);
-            log.info("Account saved {}", account);
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while creating an account", e);
-        }
+    public void save(Account account) {
+        account.setUserId(currentUserService.getCurrentUserId());
+        account.setFunds(new BigDecimal("0.0"));
+        account.setDateOfCreation(new Date());
+        accountDao.save(account);
+        log.info("Account saved {}", account);
     }
 
     /**
@@ -50,15 +50,11 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public void updateById(Integer id, Account account) {
-        try {
-            if (!isPresentById(id)) {
-                throw new IllegalArgumentException("Accessing an account with a non-existent id");
-            }
-            accountDao.updateById(id, account);
-            log.info("Account with id = {} updated to {}", id, account);
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while updating an account", e);
+        if (!isPresentById(id)) {
+            throw new IllegalArgumentException("Accessing an account with a non-existent id");
         }
+        accountDao.updateById(id, account);
+        log.info("Account with id = {} updated to {}", id, account);
     }
 
     /**
@@ -67,15 +63,11 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public void deleteById(Integer id) {
-        try {
-            if (!isPresentById(id)) {
-                throw new IllegalArgumentException("Accessing an account with a non-existent id");
-            }
-            accountDao.deleteById(id);
-            log.info("Account with id = {} deleted", id);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (!isPresentById(id)) {
+            throw new IllegalArgumentException("Accessing an account with a non-existent id");
         }
+        accountDao.deleteById(id);
+        log.info("Account with id = {} deleted", id);
     }
 
     /**
@@ -85,12 +77,8 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public Account getById(Integer id) {
-        try {
-            return accountDao.getById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Search for account with non-existent id"));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return accountDao.getById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Search for account with non-existent id"));
     }
 
     /**
@@ -100,15 +88,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public List<Account> getByUserId(Integer userId) {
-        try {
-            if (userService.isPresentById(userId)) {
-                return accountDao.getByUserId(userId);
-            } else {
-                throw new IllegalArgumentException("An exception occurred while searching for accounts for a non-existent user id");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return accountDao.getByUserId(userId);
     }
 
     /**
@@ -118,11 +98,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Override
     public boolean isPresentById(Integer id) {
-        try {
-            return accountDao.getById(id).isPresent();
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting account by id", e);
-        }
+        return accountDao.getById(id).isPresent();
     }
 
 }

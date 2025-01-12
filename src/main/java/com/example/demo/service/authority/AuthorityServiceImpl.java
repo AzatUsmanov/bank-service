@@ -26,13 +26,7 @@ public class AuthorityServiceImpl implements AuthorityService {
      */
     @Override
     public void saveByUserId(List<Authority> authorities, Integer userId) {
-        authorities.forEach(x -> {
-            try {
-                authorityDao.saveByUserId(x, userId);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        authorities.forEach(x -> authorityDao.saveByUserId(x, userId));
     }
 
     /**
@@ -42,13 +36,7 @@ public class AuthorityServiceImpl implements AuthorityService {
      */
     @Override
     public List<Authority> getByUserId(Integer userId) {
-        try {
-            return authorityDao.getByUserId(userId);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return authorityDao.getByUserId(userId);
     }
-
-
 
 }

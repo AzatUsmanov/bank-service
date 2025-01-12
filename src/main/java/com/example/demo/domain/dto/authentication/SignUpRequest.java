@@ -7,7 +7,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import static com.example.demo.domain.model.User.MAX_PASSWORD_LENGTH;
 import static com.example.demo.domain.model.User.MAX_USERNAME_LENGTH;
@@ -18,6 +20,8 @@ import static com.example.demo.domain.model.User.MIN_USERNAME_LENGTH;
  * Класс, описывающий запрос на регистрацию
  */
 @Data
+@Builder
+@NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Запрос на регистрацию")
 public class SignUpRequest {

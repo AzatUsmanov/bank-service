@@ -31,11 +31,11 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
      * @param account - {@link Account} счет для сохранения.
      */
     @Override
-    public void create(Account account) {
+    public void save(Account account) {
         if (currentUserService.userHasNoAuthorityToEdit(account.getUserId())) {
-            throw new AccessDeniedException("Attempt to create an account for another user");
+            throw new AccessDeniedException("Attempt to save an account for another user");
         }
-        accountService.create(account);
+        accountService.save(account);
     }
 
     /**
@@ -46,6 +46,9 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
      */
     @Override
     public void updateById(Integer id, Account account) {
+        if (!accountService.isPresentById(id)) {
+            throw new AccessDeniedException("Attempt to update by non-existent account");
+        }
         if (currentUserService.userHasNoAuthorityToEdit(account.getUserId())) {
             throw new AccessDeniedException("Attempt to update an account for another user");
         }
@@ -59,6 +62,9 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
      */
     @Override
     public void deleteById(Integer id) {
+        if (!accountService.isPresentById(id)) {
+            throw new AccessDeniedException("Attempt to delete an non-existent account");
+        }
         Account account = accountService.getById(id);
         if (currentUserService.userHasNoAuthorityToEdit(account.getUserId())) {
             throw new AccessDeniedException("Attempt to delete an account for another user");
@@ -74,6 +80,9 @@ public class AccountSecurityProxyServiceImpl implements  AccountService {
      */
     @Override
     public Account getById(Integer id) {
+        if (!accountService.isPresentById(id)) {
+            throw new AccessDeniedException("Attempt to get an non-existent account");
+        }
         Account account = accountService.getById(id);
         if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an account for another user");

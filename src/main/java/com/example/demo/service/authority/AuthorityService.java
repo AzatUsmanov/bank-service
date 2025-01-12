@@ -6,7 +6,6 @@ import java.util.List;
 
 public interface AuthorityService {
 
-
     List<Authority> getByUserId(Integer userId);
 
     void saveByUserId(List<Authority> authorities, Integer userId);

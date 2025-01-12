@@ -9,15 +9,18 @@ import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountService;
 import com.example.demo.service.currency.CurrencyService;
 import com.example.demo.service.user.UserService;
-import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+import com.example.demo.tool.exception.NotEnoughFundsInAccountException;
 
+import com.example.demo.tool.exception.TransferToNonExistentAccountException;
+import com.example.demo.tool.exception.TransferToSameAccountException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,25 +56,28 @@ public class TransferOperationServiceImpl implements OperationService<TransferOp
      * @param operation {@link TransferOperation} - информация о переводе средств между счетами
      */
     @Override
-    public void process(TransferOperation operation) throws NotEnoughFundsInAccount {
-        try {
-            Account fromAccount = accountService.getById(operation.getFromAccountId());
-            Account toAccount = accountService.getById(operation.getToAccountId());
-            BigDecimal transferFunds = countTransferFunds(fromAccount.getCurrency(), toAccount.getCurrency(), operation.getFunds());
-
-            operationValidityCheck(operation);
-            currencyComplianceCheck(operation.getFromAccountCurrency(), fromAccount.getCurrency());
-            withdrawFundsFromAccount(fromAccount, operation.getFunds());
-            replenishFundsToAccount(toAccount, transferFunds);
-
-            accountService.updateById(operation.getFromAccountId(), fromAccount);
-            accountService.updateById(operation.getToAccountId(), toAccount);
-            transferOperationDao.save(operation);
-
-            log.info("Saved transfer operation {}", operation);
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while processing the transfer operation", e);
+    @Transactional
+    public void process(TransferOperation operation) throws NotEnoughFundsInAccountException, TransferToNonExistentAccountException, TransferToSameAccountException {
+        if (!accountService.isPresentById(operation.getToAccountId())) {
+            throw new TransferToNonExistentAccountException();
         }
+
+        Account fromAccount = accountService.getById(operation.getFromAccountId());
+        Account toAccount = accountService.getById(operation.getToAccountId());
+        operation.setToUserId(toAccount.getUserId());
+        operation.setFromAccountCurrency(fromAccount.getCurrency());
+        BigDecimal transferFunds = countTransferFunds(fromAccount.getCurrency(), toAccount.getCurrency(), operation.getFunds());
+
+        operation.setDateOfCreation(new Date());
+        operationValidityCheck(operation);
+        withdrawFundsFromAccount(fromAccount, operation.getFunds());
+        replenishFundsToAccount(toAccount, transferFunds);
+
+        accountService.updateById(operation.getFromAccountId(), fromAccount);
+        accountService.updateById(operation.getToAccountId(), toAccount);
+        transferOperationDao.save(operation);
+
+        log.info("Saved transfer operation {}", operation);
     }
 
     /**
@@ -81,12 +87,8 @@ public class TransferOperationServiceImpl implements OperationService<TransferOp
      */
     @Override
     public TransferOperation getById(Integer id) {
-        try {
-            return transferOperationDao.getById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Attempt to get transfer operation by non-existent id"));
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while receiving a transfer operation by id", e);
-        }
+        return transferOperationDao.getById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Attempt to get transfer operation by non-existent id"));
     }
 
     /**
@@ -96,15 +98,10 @@ public class TransferOperationServiceImpl implements OperationService<TransferOp
      */
     @Override
     public List<TransferOperation> getByAccountId(Integer accountId) {
-        try {
-            if (accountService.isPresentById(accountId)) {
-                return transferOperationDao.getAllByAccountId(accountId);
-            } else {
-                throw new IllegalArgumentException("Attempt to get list of transfer operations by non-existent account id");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting the list of transfer operations by account id", e);
-        }
+        if (!accountService.isPresentById(accountId)) {
+            throw new IllegalArgumentException("Attempt to get list of transfer operations by non-existent account id");
+        } else return transferOperationDao.getAllByAccountId(accountId);
+
     }
 
     /**
@@ -115,15 +112,9 @@ public class TransferOperationServiceImpl implements OperationService<TransferOp
      */
     @Override
     public List<TransferOperation> getByUserId(Integer userId) {
-        try {
-            if (userService.isPresentById(userId)) {
-                return transferOperationDao.getAllByUserId(userId);
-            } else {
-                throw new IllegalArgumentException("Attempt to get list of transfer operations by non-existent user id");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting the list of transfer operations by user id", e);
-        }
+        if (!userService.isPresentById(userId)) {
+            throw  new IllegalArgumentException("Attempt to get list of transfer operations by non-existent user id");
+        } else return transferOperationDao.getAllByUserId(userId);
     }
 
 
@@ -153,35 +144,25 @@ public class TransferOperationServiceImpl implements OperationService<TransferOp
      * Метод, снимающий средства со счета {@link Account}
      * @param account {@link Account} - счет, с которого снимают средства
      * @param funds - средства, которые нужно снять со счета
-     * @throws NotEnoughFundsInAccount - исключение, возникающее при попытке списать средства с пустого счета
+     * @throws NotEnoughFundsInAccountException - исключение, возникающее при попытке списать средства с пустого счета
      */
-    private void withdrawFundsFromAccount(Account account, BigDecimal funds) throws NotEnoughFundsInAccount {
+    private void withdrawFundsFromAccount(Account account, BigDecimal funds) throws NotEnoughFundsInAccountException {
         if (account.getFunds().compareTo(funds) < MINIMUM_AMOUNT_OF_FUNDS_IN_ACCOUNT) {
-            throw new NotEnoughFundsInAccount("Attempt to transfer off funds from an empty account");
+            throw new NotEnoughFundsInAccountException("Attempt to transfer off funds from an empty account");
         }
         BigDecimal newAmountOfFunds = account.getFunds().add(funds.negate());
         account.setFunds(newAmountOfFunds);
     }
 
-    /**
-     * Метод, проверяющий соответствие валюты счета {@link Account} и операции {@link ReplenishmentOperation} на равенство
-     * @param operationCurrency {@link Currency} - валюта операции
-     * @param accountCurrency {@link Currency} - валюта счета
-     */
-    private void currencyComplianceCheck(Currency operationCurrency, Currency accountCurrency) {
-        if (operationCurrency != accountCurrency) {
-            throw new IllegalArgumentException("The transaction rate does not match the account rate");
-        }
-    }
-
+    
     /**
      * Метод, проверяющий, чтобы идентификатор счета, с которого списывают средства, не был равен
      * идентификатору счета, на который переводят средства
      * @param operation {@link TransferOperation} - информация о переводе
      */
-    private void operationValidityCheck(TransferOperation operation) {
+    private void operationValidityCheck(TransferOperation operation) throws TransferToSameAccountException {
         if (Objects.equals(operation.getFromAccountId(), operation.getToAccountId())) {
-            throw new IllegalArgumentException("Attempt to make a transition to the same account");
+            throw new TransferToSameAccountException("Attempt to make a transition to the same account");
         }
     }
 

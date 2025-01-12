@@ -7,12 +7,12 @@ import java.util.Optional;
 
 public interface UserDao {
 
-    void save(User user) throws SQLException;
+    void save(User user);
 
-    Optional<User> getById(Integer id) throws SQLException;
+    Optional<User> getById(Integer id);
 
-    Optional<User> getByUsername(String mail) throws SQLException;
+    Optional<User> getByUsername(String username);
 
-    Optional<User> getByMail(String mail) throws SQLException;
+    Optional<User> getByEmail(String email);
 
 }

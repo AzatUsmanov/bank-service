@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0" />
+    <title>SVI</title>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+          integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<header th:replace="~{fragment/header :: header}"></header>
+
+<body>
+
+    <h1>Список счетов</h1>
+
+    <a th:href="@{/account/create-form}"
+       class="btn btn-success">Создать счет</a>
+
+    <div>
+        <ul th:each="account : ${accounts}">
+            <li>
+                <p><span>Account id : </span><span th:text="${account.id}"></span></p>
+
+                <p><span>Date of creation : </span><span th:text="${account.dateOfCreation}"></span></p>
+
+                <p><span>Funds : </span><span th:text="${account.funds}"></span></p>
+
+                <p><span>Currency : </span><span th:text="${account.currency}"></span></p>
+
+                <a th:href="@{'/replenishment/create-form'(accountId=${account.id})}"
+                   class="btn btn-success">Пополнить средства</a>
+
+                <a th:href="@{'/withdrawal/create-form'(accountId=${account.id})}"
+                   class="btn btn-success">Снять средства</a>
+
+                <a th:href="@{'/transfer/create-form'(accountId=${account.id})}"
+                   class="btn btn-success">Перевести средства</a>
+
+                <a th:href="@{/replenishment/account-id/{id}(id=${account.id})}"
+                   class="btn btn-success">Список операций пополнений</a>
+
+                <a th:href="@{/withdrawal/account-id/{id}(id=${account.id})}"
+                   class="btn btn-success">Список операций списываний</a>
+
+                <a th:href="@{/transfer/account-id/{id}(id=${account.id})}"
+                   class="btn btn-success">Список операций переводов</a>
+
+                <form th:method="POST" th:action="@{/account/delete/{id}(id=${account.id})}">
+                    <input class="btn btn-success" type="submit" value="Удалить">
+                </form>
+
+            </li>
+        </ul>
+    </div>
+
+</body>
+</html>

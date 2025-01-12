@@ -25,14 +25,14 @@ public class TransferOperationTestDataCreator {
         }
     }
 
-    public TransferOperation getSaved(
+    public TransferOperation getSavedOperation(
             Integer id, Integer fromAccountId, Integer toAccountId, Integer fromUserId, Integer toUserId) {
-        TransferOperation operation = generate(id, fromAccountId, toAccountId, fromUserId, toUserId);
-        save(operation);
+        TransferOperation operation = generateOperation(id, fromAccountId, toAccountId, fromUserId, toUserId);
+        saveOperation(operation);
         return operation;
     }
 
-    public TransferOperation generate(
+    public TransferOperation generateOperation(
             Integer id, Integer fromAccountId, Integer toAccountId, Integer fromUserId, Integer toUserId) {
         return TransferOperation.builder()
                 .id(id)
@@ -46,7 +46,7 @@ public class TransferOperationTestDataCreator {
                 .build();
     }
 
-    public void save(TransferOperation operation) {
+    public void saveOperation(TransferOperation operation) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement prepareStatement = connection
                      .prepareStatement("INSERT INTO transfer_operations" +

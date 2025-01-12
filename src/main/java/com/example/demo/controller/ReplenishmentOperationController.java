@@ -1,75 +1,107 @@
 package com.example.demo.controller;
 
+import com.example.demo.domain.dto.Account;
 import com.example.demo.domain.dto.operation.ReplenishmentOperation;
+import com.example.demo.domain.model.Currency;
+import com.example.demo.service.authentication.CurrentUserService;
 import com.example.demo.service.operation.OperationService;
-import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+import com.example.demo.tool.exception.NotEnoughFundsInAccountException;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
+import com.example.demo.tool.exception.TransferToNonExistentAccountException;
+import com.example.demo.tool.exception.TransferToSameAccountException;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
+import java.util.Arrays;
 import java.util.List;
 
-@RestController
+/**
+ * Контроллер, выполняющий работу c операциями пополнения {@link ReplenishmentOperation}
+ */
+@Controller
 @RequestMapping("/replenishment")
-@Tag(name = "ReplenishmentOperationController", description = "Контроллер, обрабатывающий запросы на пополнение средств на счет")
 public class ReplenishmentOperationController {
 
-    private final OperationService<ReplenishmentOperation> service;
+    private final OperationService<ReplenishmentOperation> operationService;
+    private final CurrentUserService currentUserService;
 
     public ReplenishmentOperationController(@Qualifier("ReplenishmentOperationSecurityProxyServiceImpl")
-                                            OperationService<ReplenishmentOperation> service) {
-        this.service = service;
+                                            OperationService<ReplenishmentOperation> operationService, CurrentUserService currentUserService) {
+        this.operationService = operationService;
+        this.currentUserService = currentUserService;
     }
 
+    @ModelAttribute("currencies")
+    public List<Currency> currencies() {
+        return Arrays.stream(Currency.values()).toList();
+    }
+
+    /**
+     * Метод, возвращающий форму для создания операции пополнения {@link ReplenishmentOperation}
+     * @param accountId - идентификатор счета {@link Account} на который идет пополнение
+     * @return {@link ModelAndView} - представление с формой для создания операции пополнения
+     */
+    @GetMapping("/create-form")
+    public ModelAndView getCreateForm(@RequestParam("accountId") Integer accountId) {
+        var modelAndView = new ModelAndView("replenishment/create-form.html");
+        var operation = new ReplenishmentOperation();
+        operation.setAccountId(accountId);
+        modelAndView.getModel().put("operation", operation);
+        return modelAndView;
+    }
+
+    /**
+     * Метод, принимающий данные из формы и вызывающий логику обработки операции  {@link ReplenishmentOperation}
+     * @param operation {@link ReplenishmentOperation} - данные об операции перевода из формы
+     * @param bindingResult {@link BindingResult} - список ошибок
+     * @return {@link ModelAndView} - представление основной страницы
+     */
     @PostMapping
-    @Operation(
-            security = {@SecurityRequirement(name = "USER_EDIT"), @SecurityRequirement(name = "ADMIN_EDIT")},
-            summary = "Запрос на поплнение денег на счет")
-    public void process(@Valid @RequestBody ReplenishmentOperation operation) throws NotEnoughFundsInAccount {
-        service.process(operation);
+    public ModelAndView process(@ModelAttribute("operation") @Valid ReplenishmentOperation operation, BindingResult bindingResult)
+            throws NotEnoughFundsInAccountException, TransferToNonExistentAccountException, TransferToSameAccountException {
+        if (bindingResult.hasErrors()) {
+            return new ModelAndView("replenishment/create-form.html", HttpStatus.BAD_REQUEST);
+        }
+        operation.setUserId(currentUserService.getCurrentUserId());
+        operationService.process(operation);
+        return new ModelAndView("home.html");
     }
 
-    @GetMapping("/{id}")
-    @Operation(
-            security = {@SecurityRequirement(name = "USER_VIEW"), @SecurityRequirement(name = "ADMIN_VIEW")},
-            summary = "Запрос на получения операции пополнения счета по id")
-    public ResponseEntity<ReplenishmentOperation> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(service.getById(id));
+    /**
+     * Метод, возвращающий список операций переводов {@link List<ReplenishmentOperation>} текущего пользователя
+     * @return {@link ModelAndView} - представление, содержащее список операций
+     */
+    @GetMapping("/current-user")
+    public ModelAndView getByUserId() {
+        var modelAndView = new ModelAndView("/replenishment/list.html");
+        Integer currentUserId = currentUserService.getCurrentUserId();
+        List<ReplenishmentOperation> operations = operationService.getByUserId(currentUserId);
+        modelAndView.getModel().put("operations", operations);
+        return modelAndView;
     }
 
+    /**
+     * Метод, возвращающий список операций переводов {@link List<ReplenishmentOperation>} счета с идентификатором равным auditId
+     * @param accountId - идентификатор счета
+     * @return {@link ModelAndView} - представление, содержащее список операций
+     */
     @GetMapping("/account-id/{id}")
-    @Operation(
-            security = {@SecurityRequirement(name = "USER_VIEW"), @SecurityRequirement(name = "ADMIN_VIEW")},
-            summary = "Запрос на получение всех операций пополнения на счет")
-    public ResponseEntity<List<ReplenishmentOperation>> getByAccountId(@PathVariable("id") Integer accountId) {
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(service.getByAccountId(accountId));
-    }
-
-    @GetMapping("/user-id/{id}")
-    @Operation(
-            security = {@SecurityRequirement(name = "USER_VIEW"), @SecurityRequirement(name = "ADMIN_VIEW")},
-            summary = "Запрос на получение всех операций пополнения, совершенных пользователем")
-    public ResponseEntity<List<ReplenishmentOperation>> getByUserId(@PathVariable("id") Integer userId) {
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(service.getByUserId(userId));
+    public ModelAndView getByAccountId(@PathVariable("id") Integer accountId) {
+        var modelAndView = new ModelAndView("/replenishment/list.html");
+        List<ReplenishmentOperation> operations = operationService.getByAccountId(accountId);
+        modelAndView.getModel().put("operations", operations);
+        return modelAndView;
     }
 
 }

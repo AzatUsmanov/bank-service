@@ -8,7 +8,7 @@ import java.util.List;
 public interface AuthorityDao {
 
 
-    List<Authority> getByUserId(Integer userId) throws SQLException;
+    List<Authority> getByUserId(Integer userId);
 
-    void saveByUserId(Authority authority, Integer userId) throws SQLException;
+    void saveByUserId(Authority authority, Integer userId);
 }

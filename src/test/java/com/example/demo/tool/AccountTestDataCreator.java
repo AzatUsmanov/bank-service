@@ -25,13 +25,13 @@ public class AccountTestDataCreator {
         }
     }
 
-    public Account getSaved(Integer id, Integer userId) {
-        Account account = generate(id, userId);
-        save(account);
+    public Account getSavedAccount(Integer id, Integer userId) {
+        Account account = generateAccount(id, userId);
+        saveAccount(account);
         return account;
     }
 
-    public Account generate(Integer id, Integer userId) {
+    public Account generateAccount(Integer id, Integer userId) {
         return Account.builder()
                 .id(id)
                 .userId(userId)
@@ -41,7 +41,7 @@ public class AccountTestDataCreator {
                 .build();
     }
 
-    public void save(Account account) {
+    public void saveAccount(Account account) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement prepareStatement = connection.prepareStatement(
                      "INSERT INTO accounts(id, user_id, date_of_creation, funds, currency) values(?, ?, ?, ?, ?)")) {

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0" />
+    <title>SVI</title>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+          integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<header th:replace="~{fragment/header :: header}"></header>
+<body>
+
+    <h1>Список операций пополнений</h1>
+
+    <div>
+        <ul th:each="operation : ${operations}">
+            <li>
+                <p><span>Operation id : </span><span th:text="${operation.id}"></span></p>
+
+                <p><span>Account id : </span><span th:text="${operation.accountId}"></span></p>
+
+                <p><span>Date of creation : </span><span th:text="${operation.dateOfCreation}"></span></p>
+
+                <p><span>Funds : </span><span th:text="${operation.funds}"></span></p>
+
+                <p><span>Currency : </span><span th:text="${operation.currency}"></span></p>
+            </li>
+        </ul>
+    </div>
+
+</body>
+</html>

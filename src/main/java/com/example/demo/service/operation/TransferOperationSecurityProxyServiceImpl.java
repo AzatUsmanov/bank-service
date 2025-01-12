@@ -5,8 +5,10 @@ import com.example.demo.domain.dto.operation.TransferOperation;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.account.AccountService;
 import com.example.demo.service.authentication.CurrentUserService;
-import com.example.demo.tool.exception.NotEnoughFundsInAccount;
+import com.example.demo.tool.exception.NotEnoughFundsInAccountException;
 
+import com.example.demo.tool.exception.TransferToNonExistentAccountException;
+import com.example.demo.tool.exception.TransferToSameAccountException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -40,7 +42,7 @@ public class TransferOperationSecurityProxyServiceImpl implements OperationServi
      * @param operation {@link TransferOperation} - информация о переводе средств между счетами
      */
     @Override
-    public void process(TransferOperation operation) throws NotEnoughFundsInAccount {
+    public void process(TransferOperation operation) throws NotEnoughFundsInAccountException, TransferToNonExistentAccountException, TransferToSameAccountException {
         if (currentUserService.userHasNoAuthorityToEdit(operation.getFromUserId())) {
             throw new AccessDeniedException("Attempt to process an operation for another user");
         }
@@ -71,6 +73,9 @@ public class TransferOperationSecurityProxyServiceImpl implements OperationServi
      */
     @Override
     public List<TransferOperation> getByAccountId(Integer accountId) {
+        if (!accountService.isPresentById(accountId)) {
+            throw new AccessDeniedException("Attempt to get list of transfer operations by non-existent account id");
+        }
         Account account = accountService.getById(accountId);
         if (currentUserService.userHasNoAuthorityToView(account.getUserId())) {
             throw new AccessDeniedException("Attempt to get an operations by account id for another user");

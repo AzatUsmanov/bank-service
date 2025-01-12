@@ -11,11 +11,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Класс, выполняющий бизнес логику по работе с пользователями {@link User}
@@ -25,9 +25,11 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserDao dao;
+    private final UserDao userDao;
 
     private final AuthorityService authorityService;
+
+    private final PasswordEncoder passwordEncoder;
 
 
     /**
@@ -37,15 +39,12 @@ public class UserServiceImpl implements UserService {
      * @throws NotUniqueUsernameException исключение, возникающее при попытке сохранить пользователя с неуникальным именем
      */
     @Override
-    public void create(User user) throws NotUniqueEmailException, NotUniqueUsernameException {
-        try {
-            checkUserForUniqueness(user);
-            dao.save(user);
-            saveAuthoritiesFromUser(user);
-            log.info("User saved {}", user);
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while saving user data", e);
-        }
+    public void save(User user) throws NotUniqueEmailException, NotUniqueUsernameException {
+        checkUserForUniqueness(user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userDao.save(user);
+        saveAuthoritiesFromUser(user);
+        log.info("User saved {}", user);
     }
 
     /**
@@ -56,26 +55,21 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User getById(Integer id) {
-        try {
-            return dao.getById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Search for user with non-existent id"));
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting user by ID", e);
-        }
+        User user = userDao.getById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Search for user with non-existent id"));
+        user.setAuthorities(authorityService.getByUserId(id));
+        return user;
     }
 
     /**
      * Метод, возвращает данные о пользователе {@link User}
      * @param username - имя пользователя, по которому идет запрос на чтение
-     * @return {@link Optional<User>} - данные о пользователе, с именем равным username
+     * @return {@link User} - данные о пользователе, с именем равным username
      */
     @Override
-    public Optional<User> findByUsername(String username) {
-        try {
-            return dao.getByUsername(username);
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting user by ID", e);
-        }
+    public User getByUsername(String username) {
+        return userDao.getByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Search for user with non-existent username"));
     }
 
     /**
@@ -85,26 +79,21 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public boolean isPresentById(Integer id) {
-        try {
-            return dao.getById(id).isPresent();
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting user by ID", e);
-        }
+        return userDao.getById(id).isPresent();
     }
 
     /**
      * Метод, проверяющий уникальность пользователя
      * @param user {@link User} - пользователь для сохранения
      * @throws NotUniqueEmailException - исключение, возникающее, если у пользователя неуникальная почта
-     * @throws SQLException - исключение, возникающее при работе с данными
      * @throws NotUniqueUsernameException исключение, возникающее, если у пользователя неуникальное имя
      */
-    private void checkUserForUniqueness(User user) throws NotUniqueEmailException, SQLException, NotUniqueUsernameException {
-         if (dao.getByMail(user.getEmail()).isPresent()) {
-             throw new NotUniqueEmailException("Received non-unique email for registration");
-         } else if (dao.getByUsername(user.getUsername()).isPresent()) {
-             throw new NotUniqueUsernameException("Received non-unique username for registration");
-         }
+    private void checkUserForUniqueness(User user) throws NotUniqueEmailException, NotUniqueUsernameException {
+        if (userDao.getByEmail(user.getEmail()).isPresent()) {
+            throw new NotUniqueEmailException("Received non-unique email for registration");
+        } else if (userDao.getByUsername(user.getUsername()).isPresent()) {
+            throw new NotUniqueUsernameException("Received non-unique username for registration");
+        }
     }
 
     /**
@@ -112,8 +101,7 @@ public class UserServiceImpl implements UserService {
      * @param user {@link User} - данные о пользователе
      */
     private void saveAuthoritiesFromUser(User user) {
-        Integer userId = findByUsername(user.getUsername())
-                .orElseThrow(IllegalArgumentException::new)
+        Integer userId = getByUsername(user.getUsername())
                 .getId();
         List<Authority> authorities = user.getAuthorities()
                 .stream()

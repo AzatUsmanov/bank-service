@@ -6,14 +6,14 @@ import java.util.Optional;
 
 public interface OperationDao <T> {
 
-    void save(T operation) throws SQLException;
+    void save(T operation);
 
-    void deleteById(Integer id) throws SQLException;
+    void deleteById(Integer id);
 
-    Optional<T> getById(Integer id) throws SQLException;
+    Optional<T> getById(Integer id);
 
-    List<T> getAllByAccountId(Integer accountId) throws SQLException;
+    List<T> getAllByAccountId(Integer accountId);
 
-    List<T> getAllByUserId(Integer userId) throws SQLException;
+    List<T> getAllByUserId(Integer userId);
 
 }

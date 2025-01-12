@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface AccountService {
 
-    void create(Account account);
+    void save(Account account);
 
     void updateById(Integer id, Account account);
 

@@ -22,7 +22,7 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      */
     @Override
     public boolean userHasNoAuthorityToEdit(Integer userId) {
-        return notEqualToCurrentUserId(userId) && !currentUserHasAuthority(Authority.ADMIN_EDIT);
+        return notEqualToCurrentUserId(userId) && currentUserDoesNotHaveAuthority(Authority.ADMIN_EDIT);
     }
 
     /**
@@ -33,7 +33,8 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      */
     @Override
     public boolean userHasNoAuthorityToView(Integer userId) {
-        return notEqualToCurrentUserId(userId) && !currentUserHasAuthority(Authority.ADMIN_VIEW);
+        User user = getCurrentUser();
+        return notEqualToCurrentUserId(userId) && currentUserDoesNotHaveAuthority(Authority.ADMIN_VIEW);
     }
 
     /**
@@ -43,8 +44,9 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * @return true, если текущему пользователю можно читать и false, если нет
      */
     @Override
-    public boolean userHasAuthorityToView(String username) {
-        return equalToCurrentUsername(username) || currentUserHasAuthority(Authority.ADMIN_VIEW);
+    public boolean userHasNoAuthorityToView(String username) {
+        User user = getCurrentUser();
+        return notEqualToCurrentUsername(username) && currentUserDoesNotHaveAuthority(Authority.ADMIN_VIEW);
     }
 
     /**
@@ -52,8 +54,7 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * @param id - идентификатор для сравнения
      * @return true, ли равны и false, если нет
      */
-    @Override
-    public boolean notEqualToCurrentUserId(Integer id) {
+    private boolean notEqualToCurrentUserId(Integer id) {
         return !Objects.equals(getCurrentUserId(), id);
     }
 
@@ -62,9 +63,8 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * @param username - имя пользователя для сравнения
      * @return true, ли равны и false, если нет
      */
-    @Override
-    public boolean equalToCurrentUsername(String username) {
-        return Objects.equals(getCurrentUsername(), username);
+    private boolean notEqualToCurrentUsername(String username) {
+        return !Objects.equals(getCurrentUsername(), username);
     }
 
     /**
@@ -72,9 +72,8 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * @param authority - полномочие для проверки
      * @return true, если у пользователя есть это полномочие и false, если нет
      */
-    @Override
-    public boolean currentUserHasAuthority(Authority authority) {
-        return getCurrentUser()
+    private boolean currentUserDoesNotHaveAuthority(Authority authority) {
+        return !getCurrentUser()
                 .getUserAuthorities()
                 .contains(authority);
     }
@@ -92,8 +91,7 @@ public class CurrentUserServiceImpl implements  CurrentUserService {
      * Метод, возвращающий имя текущего пользователя
      * @return имя пользователя
      */
-    @Override
-    public String getCurrentUsername() {
+    private String getCurrentUsername() {
         return getCurrentUser().getUsername();
     }
 

@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface UserService {
 
-    void create(User user) throws NotUniqueEmailException, NotUniqueUsernameException;
+    void save(User user) throws NotUniqueEmailException, NotUniqueUsernameException;
 
     User getById(Integer id);
 
-    Optional<User> findByUsername(String username);
+    User getByUsername(String username);
 
     boolean isPresentById(Integer id);
 }

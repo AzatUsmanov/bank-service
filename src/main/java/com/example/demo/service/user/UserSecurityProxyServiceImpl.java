@@ -31,8 +31,8 @@ public class UserSecurityProxyServiceImpl implements UserService {
      * @throws NotUniqueUsernameException исключение, возникающее при попытке сохранить пользователя с неуникальным именем
      */
     @Override
-    public void create(User user) throws NotUniqueEmailException, NotUniqueUsernameException {
-        userService.create(user);
+    public void save(User user) throws NotUniqueEmailException, NotUniqueUsernameException {
+        userService.save(user);
     }
 
     /**
@@ -56,13 +56,12 @@ public class UserSecurityProxyServiceImpl implements UserService {
      * @return {@link Optional<User>} - данные о пользователе, с именем равным username
      */
     @Override
-    public Optional<User> findByUsername(String username) {
-        if (currentUserService.userHasAuthorityToView(username)) {
+    public User getByUsername(String username) {
+        if (currentUserService.userHasNoAuthorityToView(username)) {
             throw new AccessDeniedException("Attempt to get an account for another user by username");
         }
-        return userService.findByUsername(username);
+        return userService.getByUsername(username);
     }
-
 
     /**
      * Метод, проверяющий доступ пользователя к чтению данных о пользователе
@@ -77,4 +76,5 @@ public class UserSecurityProxyServiceImpl implements UserService {
         }
         return userService.isPresentById(id);
     }
+
 }

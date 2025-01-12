@@ -1,19 +1,22 @@
 package com.example.demo.tool;
 
 import com.example.demo.controller.AuthenticationController;
-import com.example.demo.domain.dto.authentication.SignInRequest;
 import com.example.demo.domain.model.Authority;
 import com.example.demo.domain.model.User;
 import com.example.demo.service.authority.AuthorityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.test.web.servlet.MockMvc;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @Component
 public class UserTestDataCreator {
@@ -44,31 +47,17 @@ public class UserTestDataCreator {
         }
     }
 
-    public String getAuthenticationToken(User user) {
-        return authenticationController
-                .signIn(new SignInRequest(user.getUsername(), user.getPassword()))
-                .getToken();
-    }
-
-    public User getRegisteredUserWithUserAuthoritiesById(Integer id) {
-        User user = generate(id);
+    public User getRegisteredUserById(Integer id) {
+        User user = generateUser(id);
         user.setAuthorities(List.of(Authority.USER_VIEW, Authority.USER_EDIT));
         User userWithEncodedPassword = getUserCopyWithEncodedPassword(user);
-        save(userWithEncodedPassword);
+        saveUser(userWithEncodedPassword);
         saveAuthoritiesFromUser(user);
         return user;
     }
 
-    public User getRegisteredUserWithAdminAuthoritiesById(Integer id) {
-        User user = generate(id);
-        user.setAuthorities(List.of(Authority.ADMIN_VIEW, Authority.ADMIN_EDIT));
-        User userWithEncodedPassword = getUserCopyWithEncodedPassword(user);
-        save(userWithEncodedPassword);
-        saveAuthoritiesFromUser(user);
-        return user;
-    }
 
-    public User generate(Integer id) {
+    public User generateUser(Integer id) {
         return User.builder()
                 .id(id)
                 .username(id + "username")
@@ -78,7 +67,7 @@ public class UserTestDataCreator {
                 .build();
     }
 
-    public void save(User user) {
+    public void saveUser(User user) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement prepareStatement = connection.prepareStatement(
                      "INSERT INTO users(id, username, email, password) values(?, ?, ?, ?)")) {
@@ -107,5 +96,6 @@ public class UserTestDataCreator {
                 .password(encodedPassword)
                 .build();
     }
+
 
 }

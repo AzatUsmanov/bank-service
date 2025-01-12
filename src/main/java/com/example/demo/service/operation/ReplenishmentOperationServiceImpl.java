@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,19 +52,16 @@ public class ReplenishmentOperationServiceImpl implements OperationService<Reple
     @Override
     @Transactional
     public void process(ReplenishmentOperation operation) {
-        try {
-            Account account = accountService.getById(operation.getAccountId());
-            BigDecimal replenishmentFunds = countReplenishmentFunds(operation.getCurrency(), account.getCurrency(), operation.getFunds());
+        Account account = accountService.getById(operation.getAccountId());
+        BigDecimal replenishmentFunds = countReplenishmentFunds(operation.getCurrency(), account.getCurrency(), operation.getFunds());
 
-            replenishFundsToAccount(account, replenishmentFunds);
+        operation.setDateOfCreation(new Date());
+        replenishFundsToAccount(account, replenishmentFunds);
 
-            accountService.updateById(operation.getAccountId(), account);
-            replenishmentOperationDao.save(operation);
+        accountService.updateById(operation.getAccountId(), account);
+        replenishmentOperationDao.save(operation);
 
-            log.info("Saved replenishment operation {}", operation);
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while processing the replenishment operation", e);
-        }
+        log.info("Saved replenishment operation {}", operation);
     }
 
 
@@ -74,12 +72,8 @@ public class ReplenishmentOperationServiceImpl implements OperationService<Reple
      */
     @Override
     public ReplenishmentOperation getById(Integer id) {
-        try {
-            return replenishmentOperationDao.getById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Attempt to get replenishment operation by non-existent id"));
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while receiving a replenishment operation by id", e);
-        }
+        return replenishmentOperationDao.getById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Attempt to get replenishment operation by non-existent id"));
     }
 
     /**
@@ -89,15 +83,9 @@ public class ReplenishmentOperationServiceImpl implements OperationService<Reple
      */
     @Override
     public List<ReplenishmentOperation> getByAccountId(Integer accountId) {
-        try {
-            if (accountService.isPresentById(accountId)) {
-                return replenishmentOperationDao.getAllByAccountId(accountId);
-            } else {
-                throw new IllegalArgumentException("Attempt to get list of replenishment operations by non-existent account id");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting the list of replenishment operations by account id", e);
-        }
+        if (!accountService.isPresentById(accountId)) {
+            throw new IllegalArgumentException("Attempt to get list of replenishment operations by non-existent account id");
+        } else return replenishmentOperationDao.getAllByAccountId(accountId);
     }
 
     /**
@@ -108,15 +96,9 @@ public class ReplenishmentOperationServiceImpl implements OperationService<Reple
      */
     @Override
     public List<ReplenishmentOperation> getByUserId(Integer userId) {
-        try {
-            if (userService.isPresentById(userId)) {
-                return replenishmentOperationDao.getAllByUserId(userId);
-            } else {
-                throw new IllegalArgumentException("Attempt to get list of replenishment operations by non-existent user id");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("An exception occurred while getting the list of replenishment operations by user id", e);
-        }
+        if (!userService.isPresentById(userId)) {
+            throw  new IllegalArgumentException("Attempt to get list of replenishment operations by non-existent user id");
+        } else return replenishmentOperationDao.getAllByUserId(userId);
     }
 
     /**

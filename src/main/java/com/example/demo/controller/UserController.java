@@ -1,43 +1,45 @@
 package com.example.demo.controller;
 
-import com.example.demo.domain.model.User;
-import com.example.demo.service.user.UserService;
-import com.example.demo.tool.exception.NotUniqueEmailException;
-import com.example.demo.tool.exception.NotUniqueUsernameException;
+import com.example.demo.service.authentication.CurrentUserService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
-import jakarta.validation.Valid;
-
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
-
-@RestController
+/**
+ * Контроллер, выполняющий работу с данными пользовател
+ */
+@Controller
 @RequestMapping("/user")
-@Tag(name = "UserController", description = "Контроллер с функцией создания пользователей")
 public class UserController {
 
-    private final UserService userService;
+    private final CurrentUserService currentUserService;
 
-    public UserController(@Qualifier("UserSecurityProxyServiceImpl") UserService userService) {
-        this.userService = userService;
+    public UserController(CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
     }
 
-    @PostMapping("/create")
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(
-            security = {@SecurityRequirement(name = "ADMIN_EDIT")},
-            summary = "Запрос на создание пользователя.")
-    public void create(@Valid @RequestBody User user) throws NotUniqueEmailException, NotUniqueUsernameException {
-        userService.create(user);
+    /**
+     * Метод, возвращающий данные о текущем пользователе
+     * @return {@link ModelAndView} - представление, содержащее информацию о пользователе
+     */
+    @GetMapping
+    public ModelAndView getUser() {
+        var modelAndView = new ModelAndView("user/user.html");
+        modelAndView.getModel().put("user", currentUserService.getCurrentUser());
+        return modelAndView;
     }
 
 }
+
+/*
+ {
+    "id" : 1,
+    "username": "username",
+    "email": "mail@mail.com",
+    "password": "password",
+    "authorities": ["USER_VIEW", "USER_EDIT"]
+ }
+
+ */

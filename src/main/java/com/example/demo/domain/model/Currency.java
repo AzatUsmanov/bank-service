@@ -17,11 +17,12 @@ public enum Currency {
         this.number = number;
     }
 
-    public static Currency getByNumber(Short number) {
+    public static Currency valueOf(Short number) {
         return Arrays
                 .stream(Currency.values())
                 .filter(x -> x.getNumber().equals(number))
                 .findFirst()
                 .orElseThrow(IllegalArgumentException::new);
     }
+
 }

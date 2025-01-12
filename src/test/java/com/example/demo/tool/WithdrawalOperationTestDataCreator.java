@@ -25,13 +25,13 @@ public class WithdrawalOperationTestDataCreator {
         }
     }
 
-    public WithdrawalOperation getSaved(Integer id, Integer accountId, Integer userId) {
-        WithdrawalOperation operation = generate(id, accountId, userId);
-        save(operation);
+    public WithdrawalOperation getSavedOperation(Integer id, Integer accountId, Integer userId) {
+        WithdrawalOperation operation = generateOperation(id, accountId, userId);
+        saveOperation(operation);
         return operation;
     }
 
-    public WithdrawalOperation generate(
+    public WithdrawalOperation generateOperation(
             Integer id, Integer accountId, Integer userId) {
         return WithdrawalOperation.builder()
                 .id(id)
@@ -43,7 +43,7 @@ public class WithdrawalOperationTestDataCreator {
                 .build();
     }
 
-    public void save(WithdrawalOperation operation) {
+    public void saveOperation(WithdrawalOperation operation) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement prepareStatement = connection
                      .prepareStatement("INSERT INTO withdrawal_operations" +

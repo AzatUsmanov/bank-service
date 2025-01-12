@@ -24,7 +24,6 @@ public class Operation {
     private Integer id;
 
     @Schema(description = "Дата создания операции", example = "2011-11-11")
-    @NotNull(message = "empty date of creation")
     private Date dateOfCreation;
 
 }

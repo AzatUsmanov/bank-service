@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0" />
+    <title>SVI</title>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" integrity="sha384-oOE/3m0LUMPub4kaC09mrdEhIc+e3exm4xOGxAmuFXhBNF4hcg/6MiAXAf5p0P56" crossorigin="anonymous"/>
+
+    <link th:href="@{/css/style.css}" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+          integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<header th:replace="~{fragment/header :: header}"></header>
+<body>
+
+    <h1>Перевод средств на другой счет</h1>
+
+    <p th:text="${globalError}" class="error"></p>
+
+    <div class="container">
+
+        <form th:method="POST" action="#" th:action="@{/withdrawal}" th:object="${operation}">
+
+            <h2 class="form-signin-heading">Снятие средств со счета</h2>
+
+            <input hidden="hidden" type="number" th:field="*{fromAccountId}" id="fromAccountId">
+
+            <p>
+                <label for="toAccountId" class="sr-only">номер счета</label>
+                <input type="number" th:field="*{toAccountId}" id="toAccountId" class="form-control" placeholder="Account id" required autofocus>
+                <p th:if="${#fields.hasErrors('toAccountId')}" th:errors="*{toAccountId}" class="error"></p>
+            </p>
+
+            <p>
+                <label for="funds" class="sr-only">средства</label>
+                <input type="number" step="0.01" th:field="*{funds}" id="funds" class="form-control" placeholder="Funds" required autofocus>
+                <p th:if="${#fields.hasErrors('funds')}" th:errors="*{funds}" class="error"></p>
+            </p>
+
+            <button class="btn btn-lg btn-primary btn-block" type="submit">выполнить операцию</button>
+
+        </form>
+
+    </div>
+
+</body>
+</html>

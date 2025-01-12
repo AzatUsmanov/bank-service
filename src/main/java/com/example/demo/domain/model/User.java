@@ -26,17 +26,17 @@ public class User implements UserDetails {
 
     public final static int MIN_USERNAME_LENGTH = 5;
 
-    public final static int MAX_USERNAME_LENGTH = 20;
+    public final static int MAX_USERNAME_LENGTH = 30;
 
     public final static int MIN_PASSWORD_LENGTH = 5;
 
-    public final static int MAX_PASSWORD_LENGTH = 20;
+    public final static int MAX_PASSWORD_LENGTH = 30;
 
     @Schema(description = "идентификатор", example = "42")
     private Integer id;
 
     @Schema(description = "Имя пользователя", example = "username")
-    @Size(min = 5, max = 20, message = "The length of the name must be between " +
+    @Size(min = MIN_USERNAME_LENGTH, max = MAX_USERNAME_LENGTH, message = "The length of the name must be between " +
             MIN_USERNAME_LENGTH + " and " + MAX_USERNAME_LENGTH)
     private String username;
 
@@ -45,7 +45,7 @@ public class User implements UserDetails {
     private String email;
 
     @Schema(description = "Пароль", example = "password")
-    @Size(min = 5, max = 20, message = "The length of the name must be between " +
+    @Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH, message = "The length of the name must be between " +
             MIN_PASSWORD_LENGTH + " and " + MAX_PASSWORD_LENGTH)
     private String password;
 

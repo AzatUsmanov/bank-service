@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -36,22 +37,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> userOptional;
-
-        try {
-            userOptional = userDao.getByUsername(username);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        if (userOptional.isEmpty()) {
-            throw new UsernameNotFoundException("There is no user with this name.");
-        }
-
-        User user = userOptional.get();
+        User user= userDao.getByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("There is no user with this name"));
         List<Authority> authorities = authorityService.getByUserId(user.getId());
         user.setAuthorities(authorities);
-
         return user;
     }
 

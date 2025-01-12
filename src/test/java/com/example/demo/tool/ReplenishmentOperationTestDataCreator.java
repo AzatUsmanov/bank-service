@@ -25,13 +25,13 @@ public class ReplenishmentOperationTestDataCreator {
         }
     }
 
-    public ReplenishmentOperation getSaved(Integer id, Integer accountId, Integer userId) {
-        ReplenishmentOperation operation = generate(id, accountId, userId);
-        save(operation);
+    public ReplenishmentOperation getSavedOperation(Integer id, Integer accountId, Integer userId) {
+        ReplenishmentOperation operation = generateReplenishmentOperation(id, accountId, userId);
+        saveOperation(operation);
         return operation;
     }
 
-    public ReplenishmentOperation generate(
+    public ReplenishmentOperation generateReplenishmentOperation(
             Integer id, Integer accountId, Integer userId) {
         return ReplenishmentOperation.builder()
                 .id(id)
@@ -43,7 +43,7 @@ public class ReplenishmentOperationTestDataCreator {
                 .build();
     }
 
-    public void save(ReplenishmentOperation operation) {
+    public void saveOperation(ReplenishmentOperation operation) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement prepareStatement = connection
                      .prepareStatement("INSERT INTO replenishment_operations" +

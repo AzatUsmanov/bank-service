@@ -1,12 +1,15 @@
 package com.example.demo.dao.operation;
 
 import com.example.demo.domain.dto.Account;
+import com.example.demo.domain.dto.operation.ReplenishmentOperation;
 import com.example.demo.domain.model.Currency;
 import com.example.demo.domain.dto.operation.WithdrawalOperation;
 import com.example.demo.domain.model.User;
 
 import lombok.AllArgsConstructor;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -41,138 +44,71 @@ public class WithdrawalOperationDaoImpl implements OperationDao<WithdrawalOperat
     private final String GET_WITHDRAWAL_OPERATIONS_BY_ACCOUNT_ID =
             "SELECT * FROM withdrawal_operations WHERE account_id = ?";
 
-    private final DataSource dataSource;
+
+    private final RowMapper<WithdrawalOperation> operationRowMapper = (rs, rowNum) -> {
+        return WithdrawalOperation.builder()
+                .id(rs.getInt("id"))
+                .userId(rs.getInt("user_id"))
+                .accountId(rs.getInt("account_id"))
+                .dateOfCreation(rs.getDate("date_of_creation"))
+                .funds(rs.getBigDecimal("funds"))
+                .currency(Currency.valueOf(rs.getShort("currency")))
+                .build();
+    };
+
+    private final JdbcTemplate jdbcTemplate;
 
     /**
      * Метод, сохраняющий данные об операциях списывания {@link WithdrawalOperation}
      * @param operation {@link WithdrawalOperation} - операция списывания
-     * @throws SQLException - исключение, возникающее при сохранении данных об операциях списывания
      */
     @Override
-    public void save(WithdrawalOperation operation) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection
-                     .prepareStatement(SAVE_WITHDRAWAL_OPERATION)) {
-            Date date = new Date(operation.getDateOfCreation().getTime());
-
-            prepareStatement.setInt(1, operation.getUserId());
-            prepareStatement.setInt(2, operation.getAccountId());
-            prepareStatement.setDate(3, date);
-            prepareStatement.setBigDecimal(4, operation.getFunds());
-            prepareStatement.setShort(5, operation.getCurrency().getNumber());
-
-            prepareStatement.executeUpdate();
-        }
+    public void save(WithdrawalOperation operation) {
+        jdbcTemplate.update(SAVE_WITHDRAWAL_OPERATION,
+                operation.getUserId(),
+                operation.getAccountId(),
+                operation.getDateOfCreation(),
+                operation.getFunds(),
+                operation.getCurrency().getNumber());
     }
 
     /**
      * Метод, удаляющий данные об операции списывания {@link WithdrawalOperation} с идентификатором равным id
      * @param id - идентификатор операции списывания
-     * @throws SQLException - исключение, возникшее при удалении данных об операциях списывания
      */
     @Override
-    public void deleteById(Integer id) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection
-                     .prepareStatement(DELETE_WITHDRAWAL_OPERATION_BY_ID)) {
-
-            prepareStatement.setInt(1, id);
-
-            prepareStatement.executeUpdate();
-        }
+    public void deleteById(Integer id) {
+        jdbcTemplate.update(DELETE_WITHDRAWAL_OPERATION_BY_ID, id);
     }
 
     /**
      * Метод, возвращающий данные об операции списывания {@link WithdrawalOperation} с идентификатором равным id
      * @param id - идентификатор операции списывания
-     * @return {@link Optional<WithdrawalOperation>} - информация об операции списывания
-     * @throws SQLException - исключение, возникшее при получении данных об операции списывания
      */
     @Override
-    public Optional<WithdrawalOperation> getById(Integer id) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection
-                     .prepareStatement(GET_WITHDRAWAL_OPERATION_BY_ID)) {
-
-            prepareStatement.setInt(1, id);
-
-            ResultSet resultSet = prepareStatement.executeQuery();
-
-            Optional<WithdrawalOperation> operation = resultSet.next() ?
-                    Optional.of(getWithdrawalOperationFromResultSet(resultSet)): Optional.empty();
-
-            resultSet.close();
-            return operation;
-        }
+    public Optional<WithdrawalOperation> getById(Integer id) {
+        List<WithdrawalOperation> operations = jdbcTemplate.query(GET_WITHDRAWAL_OPERATION_BY_ID, operationRowMapper, id);
+        return operations.isEmpty() ? Optional.empty() : Optional.of(operations.getFirst());
     }
 
     /**
      * Метод, возвращающий данные об операциях списывания {@link WithdrawalOperation}, на счет {@link Account} с идентификатором равным accountId
      * @param accountId - идентификатор счета
      * @return {@link List<WithdrawalOperation>} - список операций
-     * @throws SQLException - исключение, возникшее при получении данных об операциях списывания
      */
     @Override
-    public List<WithdrawalOperation> getAllByAccountId(Integer accountId) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection
-                     .prepareStatement(GET_WITHDRAWAL_OPERATIONS_BY_ACCOUNT_ID)) {
-
-            prepareStatement.setInt(1, accountId);
-
-            ResultSet resultSet = prepareStatement.executeQuery();
-            List<WithdrawalOperation> withdrawalOperations = new ArrayList<>();
-
-            while (resultSet.next()) {
-                withdrawalOperations.add(getWithdrawalOperationFromResultSet(resultSet));
-            }
-
-            resultSet.close();
-            return withdrawalOperations;
-        }
+    public List<WithdrawalOperation> getAllByAccountId(Integer accountId) {
+        return jdbcTemplate.query(GET_WITHDRAWAL_OPERATIONS_BY_ACCOUNT_ID, operationRowMapper, accountId);
     }
 
     /**
      * Метод, возвращающий данные об операциях {@link WithdrawalOperation}, совершенных пользователем {@link User} с идентификатором равным userId
      * @param userId - идентификатор пользователя
      * @return {@link List<WithdrawalOperation>} - список операций списывания
-     * @throws SQLException - исключение, возникшее при получении данных об операциях списывания
      */
     @Override
-    public List<WithdrawalOperation> getAllByUserId(Integer userId) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection
-                     .prepareStatement(GET_WITHDRAWAL_OPERATIONS_BY_USER_ID)) {
-
-            prepareStatement.setInt(1, userId);
-
-            ResultSet resultSet = prepareStatement.executeQuery();
-            List<WithdrawalOperation> withdrawalOperations = new ArrayList<>();
-
-            while (resultSet.next()) {
-                withdrawalOperations.add(getWithdrawalOperationFromResultSet(resultSet));
-            }
-
-            resultSet.close();
-            return withdrawalOperations;
-        }
-    }
-
-    /**
-     * Метод, получающий данные об операции списывания {@link WithdrawalOperation} из ResultSet
-     * @param resultSet {@link ResultSet} - объект, для чтения данных о счетах из БД
-     * @return {@link WithdrawalOperation} информация об операции списывания
-     * @throws SQLException - исключение, возникшее при чтении данных из БД об операции списывания
-     */
-    private WithdrawalOperation getWithdrawalOperationFromResultSet(ResultSet resultSet) throws SQLException {
-        return WithdrawalOperation.builder()
-                .id(resultSet.getInt("id"))
-                .userId(resultSet.getInt("user_id"))
-                .accountId(resultSet.getInt("account_id"))
-                .dateOfCreation(resultSet.getDate("date_of_creation"))
-                .funds(resultSet.getBigDecimal("funds"))
-                .currency(Currency.getByNumber(resultSet.getShort("currency")))
-                .build();
+    public List<WithdrawalOperation> getAllByUserId(Integer userId) {
+        return jdbcTemplate.query(GET_WITHDRAWAL_OPERATIONS_BY_USER_ID, operationRowMapper, userId);
     }
 
 }

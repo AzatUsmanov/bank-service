@@ -4,13 +4,11 @@ import com.example.demo.domain.model.User;
 
 import lombok.AllArgsConstructor;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,113 +24,68 @@ public class UserDaoImpl implements UserDao {
     private final String GET_USER_BY_ID =
             "SELECT * FROM users WHERE id = ?";
 
-    private final String GET_USER_BY_MAIL =
-            "SELECT * FROM users WHERE email = ?";
-
     private final String GET_USER_BY_USERNAME =
             "SELECT * FROM users WHERE username = ?";
 
-    private final DataSource dataSource;
+    private final String GET_USER_BY_EMAIL =
+            "SELECT * FROM users WHERE email = ?";
+
+
+    private final RowMapper<User> userRowMapper = (rs, rowNum) -> {
+        return User.builder()
+                .id(rs.getInt("id"))
+                .username(rs.getString("username"))
+                .email(rs.getString("email"))
+                .password(rs.getString("password"))
+                .build();
+    };
+
+    private final JdbcTemplate jdbcTemplate;
 
     /**
      * Метод, сохраняющий данные о пользователе {@link User}
-     * @param user - данные о пользователе
-     * @throws SQLException - исключение, возникающее при сохранении данных о пользователе
+     * @param user {@link User} - данные о пользователе
      */
     @Override
-    public void save(User user) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection.prepareStatement(SAVE_USER)) {
-
-            prepareStatement.setString(1, user.getUsername());
-            prepareStatement.setString(2, user.getEmail());
-            prepareStatement.setString(3, user.getPassword());
-
-            prepareStatement.executeUpdate();
-        }
+    public void save(User user) {
+        jdbcTemplate.update(SAVE_USER,
+                user.getUsername(),
+                user.getEmail(),
+                user.getPassword());
     }
 
     /**
      * Метод, возвращающий данные о пользователе {@link User} с идентификатором равным id
      * @param id - идентификатор пользователя
-     * @return {Optional<User>} - информация о пользователе
-     * @throws SQLException - исключение, возникшее при получении данных о пользователе
+     * @return User {@link User} - информация о пользователе
      */
     @Override
-    public Optional<User> getById(Integer id) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection.prepareStatement(GET_USER_BY_ID)) {
-
-            prepareStatement.setInt(1, id);
-
-            ResultSet resultSet = prepareStatement.executeQuery();
-
-            Optional<User> user = resultSet.next() ?
-                    Optional.of(getUserFromResultSet(resultSet)): Optional.empty();
-
-            resultSet.close();
-            return user;
-        }
+    public Optional<User> getById(Integer id) {
+        List<User> users = jdbcTemplate.query(GET_USER_BY_ID, userRowMapper, id);
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.getFirst());
     }
 
     /**
      * Метод, возвращающий данные о пользователе {@link User} с именем равным username
      * @param username - имя пользователя
-     * @return {Optional<User>} - информация о пользователе
-     * @throws SQLException - исключение, возникшее при получении данных о пользователе
+     * @return User {@link User} - информация о пользователе
      */
     @Override
-    public Optional<User> getByUsername(String username) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection.prepareStatement(GET_USER_BY_USERNAME)) {
-
-            prepareStatement.setString(1, username);
-
-            ResultSet resultSet = prepareStatement.executeQuery();
-
-            Optional<User> user = resultSet.next() ?
-                    Optional.of(getUserFromResultSet(resultSet)): Optional.empty();
-
-            resultSet.close();
-            return user;
-        }
+    public Optional<User> getByUsername(String username)  {
+        List<User> users = jdbcTemplate.query(GET_USER_BY_USERNAME, userRowMapper, username);
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.getFirst());
     }
+
 
     /**
      * Метод, возвращающий данные о пользователе {@link User} с почтой равной mail
-     * @param mail - почта пользователя
-     * @return {Optional<User>} - информация о пользователе
-     * @throws SQLException - исключение, возникшее при получении данных о пользователе
+     * @param email - почта пользователя
+     * @return {@link Optional<User>} - информация о пользователе
      */
     @Override
-    public Optional<User> getByMail(String mail) throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement prepareStatement = connection.prepareStatement(GET_USER_BY_MAIL)) {
-
-            prepareStatement.setString(1, mail);
-
-            ResultSet resultSet = prepareStatement.executeQuery();
-
-            Optional<User> user = resultSet.next() ?
-                    Optional.of(getUserFromResultSet(resultSet)): Optional.empty();
-
-            resultSet.close();
-            return user;
-        }
+    public Optional<User> getByEmail(String email)  {
+        List<User> users = jdbcTemplate.query(GET_USER_BY_EMAIL, userRowMapper, email);
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.getFirst());
     }
 
-    /**
-     * Метод, получающий данные о пользователе {@link User} из ResultSet
-     * @param resultSet {@link ResultSet} - объект, для чтения данных о пользователях из БД
-     * @return {@link User} - данные о пользователе
-     * @throws SQLException - исключение, возникшее при чтении данных из БД о пользователе
-     */
-    private User getUserFromResultSet(ResultSet resultSet) throws SQLException {
-        return User.builder()
-                .id(resultSet.getInt("id"))
-                .username(resultSet.getString("username"))
-                .email(resultSet.getString("email"))
-                .password(resultSet.getString("password"))
-                .build();
-    }
 }
